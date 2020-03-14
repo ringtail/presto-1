@@ -33,6 +33,7 @@ import org.testng.annotations.Test;
 
 import static com.google.common.base.Verify.verify;
 import static io.prestosql.SystemSessionProperties.JOIN_DISTRIBUTION_TYPE;
+import static io.prestosql.SystemSessionProperties.LATE_MATERIALIZATION;
 import static io.prestosql.tpch.TpchTable.getTables;
 import static org.testng.Assert.assertEquals;
 
@@ -65,6 +66,7 @@ public class TestHiveDistributedJoinQueries
     {
         Session session = Session.builder(getSession())
                 .setSystemProperty(JOIN_DISTRIBUTION_TYPE, FeaturesConfig.JoinDistributionType.BROADCAST.name())
+                .setSystemProperty(LATE_MATERIALIZATION, "false")
                 .build();
         DistributedQueryRunner runner = (DistributedQueryRunner) getQueryRunner();
         ResultWithQueryId<MaterializedResult> result = runner.executeWithQueryId(

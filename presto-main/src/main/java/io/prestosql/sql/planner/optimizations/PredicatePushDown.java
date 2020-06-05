@@ -578,10 +578,19 @@ public class PredicatePushDown
                 // Even if equiJoinClauses.equals(node.getCriteria), current dynamic filters may not match equiJoinClauses
                 ImmutableMap.Builder<String, Symbol> dynamicFiltersBuilder = ImmutableMap.builder();
                 ImmutableList.Builder<Expression> predicatesBuilder = ImmutableList.builder();
+                Map<Symbol, String> buildSymbolToDynamicFilter = node.getDynamicFilters().entrySet().stream()
+                        .collect(toMap(Map.Entry::getValue, Map.Entry::getKey));
                 for (JoinNode.EquiJoinClause clause : equiJoinClauses) {
                     Symbol probeSymbol = clause.getLeft();
                     Symbol buildSymbol = clause.getRight();
-                    String id = "df_" + idAllocator.getNextId().toString();
+                    String id;
+                    if (buildSymbolToDynamicFilter.containsKey(buildSymbol)) {
+                        id = buildSymbolToDynamicFilter.get(buildSymbol);
+                    }
+                    else {
+                        id = "df_" + idAllocator.getNextId().toString();
+                        buildSymbolToDynamicFilter.put(buildSymbol, id);
+                    }
                     predicatesBuilder.add(createDynamicFilterExpression(metadata, id, symbolAllocator.getTypes().get(probeSymbol), probeSymbol.toSymbolReference()));
                     dynamicFiltersBuilder.put(id, buildSymbol);
                 }
